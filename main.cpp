@@ -1,3 +1,33 @@
+/*
+Title: Extractify (Backend)
+Author: Owen Rasor
+Description: 
+
+This C++ program processes CSV files through command-line input, extracts specified columns,
+and optionally combines rows based on a grouping column.
+
+Functionality Overview:
+- Validates `.csv` file input.
+- Parses and trims CSV headers and data rows.
+- Extracts specified column values by header name.
+- If headers are passed with a `*` prefix, the program aggregates rows (sums numeric values) based on a shared key.
+- Displays both the original extracted data and (if applicable) the grouped/aggregated output in formatted tables.
+
+Command-Line Usage:
+- Input should be structured as:
+  `./extractify file.csv Header1 Header2 ... *GroupColumn *ValueColumn1 *ValueColumn2 ...`
+- The program first outputs the data in its raw column format.
+- If any headers are passed with a `*`, it treats the first one as the key for grouping and the rest as numeric values to aggregate.
+
+Output:
+- A well-formatted "Normal Table" with raw data.
+- If grouping is performed, a "Combined Table" showing aggregated values by group.
+
+Notes:
+- All file I/O and formatting is handled manually (no external CSV or table libraries).
+- Input validation includes CSV file extension and basic numeric conversion checks.
+*/
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -143,6 +173,7 @@ std::vector<std::string> input_columns(const int& inputs_start, const size_t& nu
     return input_columns_vector;
 }
 
+// ensures the value can be converted to a double
 bool is_valid_double(const std::string& str) {
     try {
         std::stod(str);
@@ -152,7 +183,7 @@ bool is_valid_double(const std::string& str) {
     return true;
 }
 
-// adds rows together where row names are the same
+// adds rows together where row names are the same. first char must = * to be recognized as a combine rows
 std::map<std::string, std::map<std::string, double>> combine_rows(const std::map<std::string, std::vector<std::string>>& columns, const std::string& key_col_input, const std::vector<std::string>& value_col_inputs) {
     std::map<std::string, std::map<std::string, double>> combined_map;
     std::map<std::string, double> common_rows;

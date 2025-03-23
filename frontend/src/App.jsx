@@ -14,6 +14,7 @@ function App() {
   const [files, setFiles] = useState([]);
   const [fileHeaders, setFileHeaders] = useState([]);
   const [results, setResults] = useState([]);
+  const [selectAllHeaders, setSelectAllHeaders] = useState({});
 
   const handleFilesSelected = async (selectedFiles) => {
     setFiles(selectedFiles);
@@ -29,12 +30,18 @@ function App() {
 
       const enriched = res.data.results.map(file => ({
         ...file,
-        selectedHeaders: file.headers || [],
+        selectedHeaders: [],
         combine: false,
         combineKey: "",
         combineValues: []
       }));
 
+      const selectAllMap = {};
+      res.data.results.forEach(file => {
+        selectAllMap[file.filename] = false;
+      });
+      
+      setSelectAllHeaders(selectAllMap);
       setFileHeaders(enriched);
     } catch (err) {
       console.error("Header fetch failed:", err);
@@ -78,17 +85,24 @@ function App() {
 
   return (
     <Box maxWidth="md" mx="auto" mt={5}>
+
+      { /* title */ }
       <Typography variant="h4" gutterBottom>EXTRACTIFY</Typography>
 
+      { /* file upload box */ }
       <FileUploader onFilesSelected={handleFilesSelected} />
 
+      { /* file uploaded name */ }
       {fileHeaders.map((fileData, index) => (
         <Box key={fileData.filename} mt={4} borderTop={1} pt={2}>
           <Typography variant="h6">{fileData.filename}</Typography>
 
+          { /* select columns box */ }
           <Typography>Select columns to extract:</Typography>
           <FormGroup row>
             {fileData.headers?.map((header) => (
+
+              // headers checkbox
               <FormControlLabel
                 key={header}
                 control={<Checkbox name={`select-${fileData.filename}-${header}`} checked={fileData.selectedHeaders.includes(header)}
@@ -105,8 +119,32 @@ function App() {
                 label={header}
               />
             ))}
+
+          </FormGroup>
+          
+          <FormGroup>
+            { /* select all  box */ }
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={selectAllHeaders[fileData.filename] || false}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    const updated = [...fileHeaders];
+                    updated[index].selectedHeaders = checked ? [...fileData.headers] : [];
+                    setFileHeaders(updated);
+                    setSelectAllHeaders(prev => ({
+                      ...prev,
+                      [fileData.filename]: checked
+                    }));
+                  }}
+                />
+              }
+              label = "Select All"
+            />
           </FormGroup>
 
+          { /* combine rows switch */ }
           <FormControlLabel
             control={
               <Switch
@@ -122,8 +160,10 @@ function App() {
             label="Combine rows?"
           />
 
+          { /* checklists for combining rows */ }
           {fileData.combine && (
             <Box mt={2}>
+              { /* group checklist */ }
               <Typography variant="subtitle2" gutterBottom>Group by this column:</Typography>
               <FormGroup row>
                 {fileData.headers.map((header) => (
@@ -140,7 +180,8 @@ function App() {
                   />
                 ))}
               </FormGroup>
-
+              
+              { /* combine columns */ }
               <Typography variant="subtitle2" gutterBottom>Add values from these columns:</Typography>
               <FormGroup row>
                 {fileData.headers.map((header) => (
@@ -174,6 +215,7 @@ function App() {
         </Box>
       )}
 
+      { /* output for normal table */ }
       {Array.isArray(results) && results.length > 0 && results.map((result, index) => (
         <Box key={result.filename || index} mt={5} p={2} border={1} borderRadius={2}>
           <Typography variant="h6">{result.filename}</Typography>
@@ -205,6 +247,7 @@ function App() {
                 </>
               )}
 
+              { /* output for combined table */ } 
               {Array.isArray(result.combined?.headers) && Array.isArray(result.combined?.rows) && result.combined.headers.length > 0 && (
                 <>
                   <Button
@@ -233,6 +276,7 @@ function App() {
         </Box>
       ))}
 
+      { /* help link */ }
       <Box mt={4}>
         <Typography variant="body2" color="textSecondary">
           If you need help pasting your results into Google Sheets or Excel,{' '}

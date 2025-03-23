@@ -7,6 +7,7 @@ import subprocess
 import uuid
 import os
 from typing import List
+import platform
 
 app = FastAPI()
 
@@ -19,7 +20,7 @@ app.add_middleware(
 )
 
 UPLOAD_DIR = "uploads"
-EXTRACTIFY_PATH = "./extractify"
+EXTRACTIFY_PATH = "./extractify.exe" if platform.system() == "Windows" else "./extractify"
 
 # ensure upload folder exists
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -90,3 +91,34 @@ async def process_csv(
             })
     
     return results
+
+@app.post("/extract-headers/")
+async def extract_headers(files: List[UploadFile] = File(...)):
+    '''extracts headers to be used in checklist'''
+    results = []
+
+    for file in files:
+        try:
+            file_id = str(uuid.uuid4())
+            filename = f"{UPLOAD_DIR}/{file_id}_{file.filename}"
+            with open(filename, "wb") as f:
+                shutil.copyfileobj(file.file, f)
+
+            with open(filename, "r") as f:
+                first_line = f.readline().strip()
+                headers = [h.strip() for h in first_line.split(",")]
+
+            results.append({
+                "filename": file.filename,
+                "headers": headers
+            })
+
+        except Exception as e:
+            results.append({
+                "filename": file.filename,
+                "error": str(e)
+            })
+
+    return {"results": results}
+
+

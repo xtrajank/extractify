@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import FileUploader from './components/FileUploader';
-import { Button, Box, Typography, FormControlLabel, FormGroup, Checkbox, Switch } from '@mui/material';
+import { Button, Box, Typography, FormControlLabel, FormGroup, Checkbox, Switch, RadioGroup, Radio } from '@mui/material';
 
 const MAIN_URL = "http://localhost:8000"
 
@@ -114,6 +114,12 @@ function App() {
                       updated[index].selectedHeaders = updated[index].selectedHeaders.filter(h => h !== header);
                     }
                     setFileHeaders(updated);
+        
+                    const allSelected = updated[index].selectedHeaders.length === fileData.headers.length;
+                    setSelectAllHeaders(prev => ({
+                      ...prev,
+                      [fileData.filename]: allSelected
+                    }));
                   }}
                 />}
                 label={header}
@@ -165,26 +171,33 @@ function App() {
             <Box mt={2}>
               { /* group checklist */ }
               <Typography variant="subtitle2" gutterBottom>Group by this column:</Typography>
-              <FormGroup row>
+              <RadioGroup
+                row
+                value={fileData.combineKey}
+                onChange={(e) => {
+                  const updated = [...fileHeaders];
+                  updated[index].combineKey = e.target.value;
+
+                  // Optional: also remove it from value columns if it's there
+                  updated[index].combineValues = updated[index].combineValues.filter(val => val !== e.target.value);
+
+                  setFileHeaders(updated);
+                }}
+              >
                 {fileData.headers.map((header) => (
                   <FormControlLabel
                     key={header}
-                    control={<Checkbox name={`key-${fileData.filename}-${header}`} checked={fileData.combineKey === header}
-                      onChange={() => {
-                        const updated = [...fileHeaders];
-                        updated[index].combineKey = header;
-                        setFileHeaders(updated);
-                      }}
-                    />}
+                    value={header}
+                    control={<Radio />}
                     label={header}
                   />
                 ))}
-              </FormGroup>
+              </RadioGroup>
               
               { /* combine columns */ }
               <Typography variant="subtitle2" gutterBottom>Add values from these columns:</Typography>
               <FormGroup row>
-                {fileData.headers.map((header) => (
+                {fileData.headers.filter((header) => header !== fileData.combineKey).map((header) => (
                   <FormControlLabel
                     key={header + '-val'}
                     control={<Checkbox name={`val-${fileData.filename}-${header}`} checked={fileData.combineValues.includes(header)}

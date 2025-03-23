@@ -5,6 +5,11 @@ import { Button, Box, Typography, FormControlLabel, FormGroup, Checkbox, Switch 
 
 const MAIN_URL = "http://localhost:8000"
 
+function csvSafeJoin(arr) {
+  return arr.map(cell => (cell == null ? '' : String(cell))).join('\t');
+}
+
+
 function App() {
   const [files, setFiles] = useState([]);
   const [fileHeaders, setFileHeaders] = useState([]);
@@ -49,6 +54,7 @@ function App() {
     }
 
     config.selectedHeaders.forEach(col => formData.append("columns", col));
+    console.log("Selected Headers Being Sent:", config.selectedHeaders);
     if (config.combine) {
       formData.append("combine", "true");
       formData.append("combineKey", config.combineKey);
@@ -61,8 +67,6 @@ function App() {
       const res = await axios.post(`${MAIN_URL}/process-csv/`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
-      console.log("Process response:", res.data); // DEBUG
 
       const processedResults = res.data.results || res.data;
       const wrapped = Array.isArray(processedResults) ? processedResults : [processedResults];
@@ -184,19 +188,19 @@ function App() {
                     size="small"
                     variant="outlined"
                     onClick={() => {
-                      const text = result.normal.headers.join('\t') + '\n' +
-                        result.normal.rows.map(row => row.join('\t')).join('\n');
+                      const text = csvSafeJoin(result.normal.headers) + '\n' +
+                        result.normal.rows.map(row => csvSafeJoin(row)).join('\n');
                       navigator.clipboard.writeText(text);
                     }}
                   >
-                    Copy Normal Output
+                    Copy
                   </Button>
 
                   <Typography variant="subtitle2" mt={2}>Normal Table</Typography>
                   <pre style={{ whiteSpace: "pre-wrap", fontFamily: "monospace" }}>
-                    {result.normal.headers.join('\t')}
+                    {csvSafeJoin(result.normal.headers)}
                     {'\n'}
-                    {result.normal.rows.map(row => row.join('\t')).join('\n')}
+                    {result.normal.rows.map(row => csvSafeJoin(row)).join('\n')}
                   </pre>
                 </>
               )}
@@ -207,20 +211,20 @@ function App() {
                     size="small"
                     variant="outlined"
                     onClick={() => {
-                      const text = result.combined.headers.join('\t') + '\n' +
-                        result.combined.rows.map(row => row.join('\t')).join('\n');
+                      const text = csvSafeJoin(result.combined.headers) + '\n' +
+                        result.combined.rows.map(row => csvSafeJoin(row)).join('\n');
                       navigator.clipboard.writeText(text);
                     }}
                     style={{ marginTop: "1rem" }}
                   >
-                    Copy Combined Output
+                    Copy
                   </Button>
 
                   <Typography variant="subtitle2" mt={2}>Combined Table</Typography>
                   <pre style={{ whiteSpace: "pre-wrap", fontFamily: "monospace" }}>
-                    {result.combined.headers.join('\t')}
+                    {csvSafeJoin(result.combined.headers)}
                     {'\n'}
-                    {result.combined.rows.map(row => row.join('\t')).join('\n')}
+                    {result.combined.rows.map(row => csvSafeJoin(row)).join('\n')}
                   </pre>
                 </>
               )}

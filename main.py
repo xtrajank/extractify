@@ -69,12 +69,12 @@ async def process_csv(
                 lines = section.strip().splitlines()
                 if len(lines) < 3:
                     return {"headers": [], "rows": []}
-                headers = [h.strip() for h in lines[0].split()]
+                headers = [h.strip() for h in lines[0].split('\t')]
                 rows = []
                 for line in lines[2:]:
                     if line.startswith("Row count"):
                         break
-                    row = line.strip().split()
+                    row = line.strip().split('\t')
                     rows.append(row)
                 return {"headers": headers, "rows": rows}
 
@@ -89,6 +89,10 @@ async def process_csv(
                 "filename": file.filename,
                 "error": str(e)
             })
+
+        finally:
+            if os.path.exists(filename):
+                os.remove(filename)
     
     return results
 
@@ -118,6 +122,10 @@ async def extract_headers(files: List[UploadFile] = File(...)):
                 "filename": file.filename,
                 "error": str(e)
             })
+
+        finally:
+            if os.path.exists(filename):
+                os.remove(filename)
 
     return {"results": results}
 

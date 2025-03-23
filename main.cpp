@@ -81,7 +81,7 @@ std::vector<std::string> extract_headers(const std::string& input_filename) {
             std::stringstream headers_ss(headers_line); // create a string stream for the line
             std::string header;
             while(getline(headers_ss, header, ',')) { // sepearte headers by comma
-                headers_vector.push_back(header); // store in headers vector
+                headers_vector.push_back(trim(header)); // store in headers vector
             }
             
             input_file.close();
@@ -120,7 +120,7 @@ std::map<std::string, std::vector<std::string>> extract_columns(const std::strin
                 auto find_header = std::find(input_header_names.begin(), input_header_names.end(), header);
                 if (find_header != input_header_names.end()) {
                     header_indices.push_back(column_index);
-                    headers_vector.push_back(header); // store in headers vector if specified
+                    headers_vector.push_back(trim(header)); // store in headers vector if specified
                 }
                 column_index++;
             }
@@ -286,10 +286,10 @@ void output_combined(std::ostream& os, const std::string& table_name, const std:
     // print combined rows
     size_t row_count = 0;
     for (const auto& [group, values_map] : combined) {
-        os << std::setw(col_widths[group_col_name] + 2) << std::left << group;
+        os << std::setw(col_widths[group_col_name] + 5) << std::left << group;
         for (const auto& col : value_col_names) {
             double val = values_map.count(col) ? values_map.at(col) : 0.0;
-            os << std::setw(col_widths[group_col_name] + 2) << std::left << std::fixed << std::setprecision(2) << val;
+            os << std::setw(col_widths[group_col_name] + 5) << std::left << std::fixed << std::setprecision(2) << val;
         }
         os << "\n";
         row_count++;

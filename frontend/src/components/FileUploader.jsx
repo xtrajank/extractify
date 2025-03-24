@@ -12,7 +12,7 @@ function FileUploader({ onFilesSelected }) {
     };
 
     return (
-        <Box p={3} border={1} borderRadius={2} borderColor="grey.300" boxShadow={1}>
+        <Box sx={{align:'center', p:3, border:1, borderRadius:2, borderColor:"grey.300", boxShadow:1}}>
             <Typography variant="h6" gutterBottom> Upload CSV Files </Typography>
 
             <Button variant="contained" component="label">
@@ -28,7 +28,7 @@ function FileUploader({ onFilesSelected }) {
 
             <Typography variant="body2" color="textSecondary" mt={1}>
                 If you need help exporting a CSV file,&nbsp;
-                <Link href="/help/export" target="_blank" rel="noopener">
+                <Link href="/help/export">
                 click here
                 </Link>.
             </Typography>

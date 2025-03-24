@@ -4,7 +4,7 @@ import FileUploader from './FileUploader';
 import { Button, Box, Typography, FormControlLabel, FormGroup, Checkbox, Switch, RadioGroup, Radio } from '@mui/material';
 import { Link } from 'react-router-dom';
 
-const MAIN_URL = "http://localhost:8000"
+const MAIN_URL = ""
 
 function csvSafeJoin(arr) {
   return arr.map(cell => (cell == null ? '' : String(cell))).join('\t');

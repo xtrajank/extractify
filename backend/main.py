@@ -1,13 +1,13 @@
 '''fastAPI app to connect the C++ backend to a React frontend'''
 from fastapi import FastAPI, File, UploadFile, Form
-from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import shutil
 import subprocess
 import uuid
 import os
 from typing import List
-import platform
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 app = FastAPI()
 
@@ -20,7 +20,7 @@ app.add_middleware(
 )
 
 UPLOAD_DIR = "uploads"
-EXTRACTIFY_PATH = "./extractify.exe" if platform.system() == "Windows" else "./extractify"
+EXTRACTIFY_PATH = os.path.join(os.path.dirname(__file__), "extractify")
 
 # ensure upload folder exists
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -128,5 +128,13 @@ async def extract_headers(files: List[UploadFile] = File(...)):
                 os.remove(filename)
 
     return {"results": results}
+
+dist_path = os.path.join(os.path.dirname(__file__), "static")
+
+app.mount("/", StaticFiles(directory=dist_path, html=True), name="static")
+
+@app.get("/{full_path:path}")
+async def serve_spa(full_path: str):
+    return FileResponse(os.path.join(dist_path, "index.html"))
 
 

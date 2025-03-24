@@ -1,0 +1,7 @@
+services:
+  extractify:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./uploads:/app/backend/uploads
